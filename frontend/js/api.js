@@ -1,5 +1,5 @@
-const API_BASE     = 'https://travelbuddy-fullstack-production.up.railway.app/api';
-const STORAGE_BASE = 'https://travelbuddy-fullstack-production.up.railway.app/storage';
+const API_BASE     = 'https://travelbuddy-fullstack-production.up.railway.app/api/';
+const STORAGE_BASE = 'https://travelbuddy-fullstack-production.up.railway.app/storage/';
 
 const api = {
     getToken: () => localStorage.getItem('tb_token'),
