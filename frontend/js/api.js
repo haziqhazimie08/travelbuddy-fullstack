@@ -17,6 +17,7 @@ const api = {
 
     async request(endpoint, options = {}) {
         try {
+            if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
             const res = await fetch(`${API_BASE}${endpoint}`, options);
             if (res.status === 401) { this.clearAuth(); window.location.href = 'auth.html'; return { error: 'Unauthorized' }; }
             const data = res.headers.get('content-type')?.includes('application/json') ? await res.json() : {};
