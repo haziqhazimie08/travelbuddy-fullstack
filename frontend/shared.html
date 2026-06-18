@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelBuddy — Shared Itinerary</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <a href="index.html" class="logo">TravelBuddy</a>
+            <div class="nav-links">
+                <a href="auth.html" class="btn btn-primary btn-sm">Start Planning</a>
+            </div>
+        </nav>
+
+        <div id="loadingState" style="text-align:center; padding:4rem; color:var(--text-secondary);">
+            <span class="loader" style="width:40px;height:40px; border-width:4px;"></span>
+            <p style="margin-top:1rem;">Loading shared itinerary…</p>
+        </div>
+
+        <div id="content" style="display:none; max-width:750px; margin:0 auto;">
+            <div class="glass-card">
+                <div style="margin-bottom:1.5rem;">
+                    <p style="color:var(--accent-blue); font-size:0.85rem; font-weight:600; margin-bottom:0.3rem;">SHARED ITINERARY</p>
+                    <h1 id="iTitle" style="font-size:2rem; background:linear-gradient(135deg,#fff,var(--accent-purple));-webkit-background-clip:text;color:transparent;"></h1>
+                    <p id="iDates" style="color:var(--text-muted); margin-top:0.3rem;"></p>
+                </div>
+                <div class="timeline" id="placesList"></div>
+            </div>
+        </div>
+
+        <div id="errorState" style="display:none; text-align:center; padding:4rem; color:var(--text-muted);">
+            <h2>❌ Itinerary Not Found</h2>
+            <p style="margin-top:0.5rem;">This link may have expired or be invalid.</p>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+
+        async function loadShared() {
+            if (!token) { showError(); return; }
+            const res = await api.get(`/shared/${token}`, false);
+            document.getElementById('loadingState').style.display = 'none';
+            if (res.error || !res.data) { showError(); return; }
+
+            const d = res.data;
+            document.getElementById('iTitle').textContent = d.title;
+            document.getElementById('iDates').textContent = `${fmtDate(d.start_date)} → ${fmtDate(d.end_date)}`;
+
+            const list = document.getElementById('placesList');
+            (d.places || []).forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                item.innerHTML = `
+                    <h4>${p.name}</h4>
+                    ${p.time ? `<p class="place-meta">🕗 ${p.time}</p>` : ''}
+                    ${p.location ? `<p class="place-meta">📍 ${p.location}</p>` : ''}
+                    ${p.description ? `<p class="place-desc">${p.description}</p>` : ''}
+                `;
+                list.appendChild(item);
+            });
+
+            document.getElementById('content').style.display = 'block';
+        }
+
+        function showError() { document.getElementById('errorState').style.display = 'block'; }
+        loadShared();
+    </script>
+</body>
+</html>

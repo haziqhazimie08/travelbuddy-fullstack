@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelBuddy — AI-Powered Travel Planning</title>
+    <meta name="description" content="TravelBuddy uses AI to generate personalized travel itineraries based on your budget, style and interests.">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .hero { min-height: calc(100vh - 100px); display: flex; align-items: center; justify-content: center; text-align: center; }
+        .hero-inner { max-width: 680px; }
+        .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; margin-bottom: 1.25rem; background: linear-gradient(135deg, #fff 40%, var(--accent-blue)); -webkit-background-clip: text; color: transparent; line-height: 1.1; }
+        .hero p { font-size: 1.15rem; color: var(--text-secondary); margin-bottom: 2.5rem; line-height: 1.7; }
+        .hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 5rem; }
+        .feature-card { text-align: center; padding: 2rem 1.5rem; }
+        .feature-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+        .feature-card h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .feature-card p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <a href="index.html" class="logo">TravelBuddy</a>
+            <div class="nav-links">
+                <a href="auth.html" class="nav-link">Login</a>
+                <a href="auth.html" class="btn btn-primary">Start Planning</a>
+            </div>
+        </nav>
+
+        <section class="hero">
+            <div class="hero-inner glass-card">
+                <h1>LETS EXPLORE MALAYSIA</h1>
+                <p>Tell us your budget, travel style, and interests. TravelBuddy's AI engine will craft a detailed day-by-day itinerary — complete with places, activities and timings — in seconds.</p>
+                <div class="hero-cta">
+                    <a href="auth.html" class="btn btn-primary">✨ Generate My Itinerary</a>
+                    <a href="auth.html" class="btn btn-secondary">Create Account</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="feature-card glass-card">
+                <div class="feature-icon">🤖</div>
+                <h3>AI-Powered Plans</h3>
+                <p>Gemini AI crafts unique itineraries tailored to your personal preferences and budget level.</p>
+            </div>
+            <div class="feature-card glass-card">
+                <div class="feature-icon">🗺️</div>
+                <h3>Interactive Maps</h3>
+                <p>View your planned route on Google Maps and explore each destination visually.</p>
+            </div>
+            <div class="feature-card glass-card">
+                <div class="feature-icon">🔗</div>
+                <h3>Easy Sharing</h3>
+                <p>Generate unique shareable links for any itinerary and send it to your travel companions.</p>
+            </div>
+            <div class="feature-card glass-card">
+                <div class="feature-icon">💾</div>
+                <h3>Save & Edit</h3>
+                <p>Save your favourite plans, add or remove activities, and customise every detail.</p>
+            </div>
+        </section>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Redirect already-logged-in users
+        if (api.getToken()) window.location.href = 'dashboard.html';
+    </script>
+</body>
+</html>

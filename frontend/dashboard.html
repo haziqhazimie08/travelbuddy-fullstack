@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelBuddy — Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .sidebar-card { position: sticky; top: 90px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .section-title { font-size: 1.3rem; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+        .empty-state span { font-size: 3rem; display: block; margin-bottom: 1rem; }
+        .pref-summary { font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.75rem; line-height: 1.6; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--glass-border); }
+        .gen-panel { margin-top: 1.5rem; }
+        .animate-bg { background: linear-gradient(270deg, var(--accent-purple), var(--accent-blue), var(--accent-purple)); background-size: 400%; animation: gradientShift 4s ease infinite; }
+        @keyframes gradientShift { 0%{background-position:0%} 50%{background-position:100%} 100%{background-position:0%} }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <a href="index.html" class="logo">TravelBuddy</a>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link active">🗓️ Generate</a>
+                <a href="profile.html" class="nav-link">👤 Profile</a>
+                <span id="navUser" style="color:var(--text-secondary); font-size:0.9rem;"></span>
+                <button onclick="logout()" class="btn btn-secondary btn-sm">Logout</button>
+            </div>
+        </nav>
+
+        <div id="alertbox" class="alert"></div>
+
+        <div class="dashboard-grid">
+            <!-- LEFT SIDEBAR -->
+            <div class="sidebar-card glass-card">
+                <h3 style="margin-bottom:1.25rem; color:var(--accent-blue);">Trip Preferences</h3>
+                <form id="prefForm" onsubmit="savePreferences(event)">
+                    <div class="form-group">
+                        <label>Budget Level</label>
+                        <select id="prefBudget" class="form-input form-select">
+                            <option value="Backpacker">🎒 Backpacker / Budget</option>
+                            <option value="Standard">✈️ Standard / Mid-Range</option>
+                            <option value="Luxury">💎 Luxury / High-End</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Travel Style</label>
+                        <select id="prefStyle" class="form-input form-select">
+                            <option value="Relaxed">🌴 Relaxed & Leisure</option>
+                            <option value="Adventure">🏔️ Action & Adventure</option>
+                            <option value="Cultural">🏛️ Cultural & Historical</option>
+                            <option value="Foodie">🍜 Food & Culinary</option>
+                            <option value="Nightlife">🎉 Party & Nightlife</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Destination (State in Malaysia)</label>
+                        <select id="prefInterests" class="form-input form-select">
+                            <option value="">— Select a State —</option>
+                            <option value="Johor">Johor</option>
+                            <option value="Kedah">Kedah</option>
+                            <option value="Kelantan">Kelantan</option>
+                            <option value="Malacca">Malacca</option>
+                            <option value="Negeri Sembilan">Negeri Sembilan</option>
+                            <option value="Pahang">Pahang</option>
+                            <option value="Penang">Penang</option>
+                            <option value="Perak">Perak</option>
+                            <option value="Perlis">Perlis</option>
+                            <option value="Sabah">Sabah</option>
+                            <option value="Sarawak">Sarawak</option>
+                            <option value="Selangor">Selangor</option>
+                            <option value="Terengganu">Terengganu</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input id="tripStartDate" type="date" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input id="tripEndDate" type="date" class="form-input">
+                    </div>
+                    <button id="savePrefBtn" type="submit" class="btn btn-secondary btn-full">Save Preferences</button>
+                </form>
+
+                <div class="gen-panel">
+                    <hr style="border:0; border-top:1px solid var(--glass-border); margin:1.5rem 0;">
+                    <button id="generateBtn" onclick="generateItinerary()" class="btn btn-primary btn-full animate-bg" style="border:none;">✨ Generate with AI</button>
+                    <div id="genLoader" style="text-align:center; margin-top:1rem; display:none;">
+                        <span class="loader"></span>
+                        <p style="color:var(--text-secondary); font-size:0.85rem; margin-top:0.5rem;">AI is planning your trip…</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT MAIN PANEL -->
+            <div class="glass-card">
+                <!-- Welcome state -->
+                <div id="welcomeState" class="empty-state">
+                    <span>🌍</span>
+                    <h3>Your AI itinerary will appear here</h3>
+                    <p style="margin-top:0.5rem;">Set your preferences and click "Generate with AI"</p>
+                </div>
+
+                <!-- Generated itinerary view -->
+                <div id="itineraryView" style="display:none;">
+                    <div class="section-header">
+                        <div>
+                            <h2 id="iTitle" style="background:linear-gradient(135deg,#fff,var(--accent-purple));-webkit-background-clip:text;color:transparent;"></h2>
+                            <p id="iDates" style="color:var(--text-muted); font-size:0.85rem; margin-top:0.2rem;"></p>
+                        </div>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                            <button id="saveBtn" onclick="toggleSave()" class="btn btn-secondary btn-sm">💾 Save Trip</button>
+                            <button id="shareBtn" onclick="getShareLink()" class="btn btn-success btn-sm">🔗 Share Link</button>
+                            <button id="deleteItinBtn" class="btn btn-danger btn-sm">🗑️ Delete</button>
+                        </div>
+                    </div>
+
+                    <div id="shareLinkBox" style="display:none; margin-bottom:1rem;">
+                        <label class="form-group" style="font-size:0.8rem; color:var(--text-secondary);">Shareable Link</label>
+                        <div class="share-link-box">
+                            <input id="shareLinkInput" type="text" class="form-input" readonly>
+                            <button class="btn btn-secondary btn-sm" onclick="copyShareLink()">Copy</button>
+                        </div>
+                    </div>
+
+                    <!-- Places Timeline -->
+                    <div class="timeline" id="placesList"></div>
+
+                    <!-- Add Activity Form -->
+                    <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--glass-border);">
+                        <h4 style="margin-bottom:1rem; color:var(--accent-blue);">➕ Add Activity</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Place Name</label>
+                                <input id="newPlaceName" type="text" class="form-input" placeholder="e.g. Senso-ji Temple">
+                            </div>
+                            <div class="form-group">
+                                <label>Location</label>
+                                <input id="newPlaceLocation" type="text" class="form-input" placeholder="e.g. Asakusa, Tokyo">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Time</label>
+                                <input id="newPlaceTime" type="text" class="form-input" placeholder="e.g. 09:00 AM">
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <input id="newPlaceDesc" type="text" class="form-input" placeholder="Brief description">
+                            </div>
+                        </div>
+                        <button onclick="addActivity()" class="btn btn-secondary btn-sm">Add to Itinerary</button>
+                    </div>
+
+                    <!-- Google Map -->
+                    <div class="map-container" id="mapContainer">
+                        <div id="map" style="width:100%;height:100%;"></div>
+                    </div>
+                </div>
+
+                <!-- My Saved Trips -->
+                <div id="myTripsView" style="display:none; margin-top:2rem;">
+                    <div class="section-header">
+                        <h3 class="section-title">My Travel History</h3>
+                        <button onclick="loadMyTrips()" class="btn btn-secondary btn-sm">↻ Refresh</button>
+                    </div>
+                    <div id="tripsList" class="itinerary-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal">
+            <h3>🗑️ Delete Itinerary?</h3>
+            <p>This will permanently delete your trip and all its activities. This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                <button id="confirmDeleteBtn" onclick="confirmDelete()" class="btn btn-danger">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet.js — Free maps, no API key needed -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        requireAuth();
+
+        let currentItineraryId = null;
+        let currentIsSaved = false;
+        let leafletMap = null;
+        let markers = [];
+
+        // ── Init ────────────────────────────────────────────────────────────────
+        async function initDashboard() {
+            const user = api.getUser();
+            if (user) document.getElementById('navUser').textContent = `Hi, ${user.name}`;
+
+            const prefRes = await api.get('/preferences');
+            if (prefRes.data) {
+                const p = prefRes.data;
+                if (p.budget) document.getElementById('prefBudget').value = p.budget;
+                if (p.travel_style) document.getElementById('prefStyle').value = p.travel_style;
+                if (p.interests) document.getElementById('prefInterests').value = p.interests;
+            }
+
+            loadMyTrips();
+        }
+
+        // ── Preferences ─────────────────────────────────────────────────────────
+        async function savePreferences(e) {
+            e.preventDefault();
+
+            const startDate = document.getElementById('tripStartDate').value;
+            const endDate   = document.getElementById('tripEndDate').value;
+
+            if (startDate && endDate && endDate < startDate) {
+                showAlert('alertbox', 'End date cannot be before start date.', 'error');
+                return;
+            }
+
+            setLoading('savePrefBtn', true);
+            const res = await api.post('/preferences', {
+                budget: document.getElementById('prefBudget').value,
+                travel_style: document.getElementById('prefStyle').value,
+                interests: document.getElementById('prefInterests').value
+            });
+            setLoading('savePrefBtn', false, 'Save Preferences');
+            if (res.error) showAlert('alertbox', res.error, 'error');
+            else showAlert('alertbox', '✅ Preferences saved!', 'success');
+        }
+
+        // ── Generate ─────────────────────────────────────────────────────────────
+        async function generateItinerary() {
+            const startDate  = document.getElementById('tripStartDate').value;
+            const endDate    = document.getElementById('tripEndDate').value;
+            const budget     = document.getElementById('prefBudget').value;
+            const style      = document.getElementById('prefStyle').value;
+            const interests  = document.getElementById('prefInterests').value;
+
+            // Validate destination
+            if (!interests) {
+                showAlert('alertbox', 'Please select a destination state before generating.', 'error');
+                return;
+            }
+
+            // Validate dates
+            if (!startDate || !endDate) {
+                showAlert('alertbox', 'Please select a Start Date and End Date before generating.', 'error');
+                return;
+            }
+            if (endDate < startDate) {
+                showAlert('alertbox', 'End date cannot be before start date.', 'error');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('welcomeState').style.display = 'none';
+            document.getElementById('itineraryView').style.display = 'none';
+            document.getElementById('myTripsView').style.display = 'none';
+            document.getElementById('genLoader').style.display = 'block';
+            document.getElementById('generateBtn').disabled = true;
+
+            // Step 1: Auto-save preferences silently before generating
+            const prefRes = await api.post('/preferences', {
+                budget: budget,
+                travel_style: style,
+                interests: interests
+            });
+
+            if (prefRes.error) {
+                showAlert('alertbox', 'Failed to save preferences: ' + prefRes.error, 'error');
+                document.getElementById('welcomeState').style.display = 'block';
+                document.getElementById('genLoader').style.display = 'none';
+                document.getElementById('generateBtn').disabled = false;
+                return;
+            }
+
+            // Step 2: Generate itinerary
+            const res = await api.post('/itineraries/generate', { start_date: startDate, end_date: endDate });
+
+            document.getElementById('genLoader').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+
+            if (res.error) {
+                showAlert('alertbox', res.error, 'error');
+                document.getElementById('welcomeState').style.display = 'block';
+                return;
+            }
+
+            renderItinerary(res.data);
+            loadMyTrips(); // refresh sidebar count
+        }
+
+        // ── Render Itinerary ─────────────────────────────────────────────────────
+        function renderItinerary(data, isSaved = false) {
+            currentItineraryId = data.id;
+            currentIsSaved = isSaved;
+            document.getElementById('itineraryView').style.display = 'block';
+            document.getElementById('shareLinkBox').style.display = 'none';
+            document.getElementById('myTripsView').style.display = 'block';
+            document.getElementById('iTitle').textContent = data.title;
+            document.getElementById('iDates').textContent = `${fmtDate(data.start_date)} → ${fmtDate(data.end_date)}`;
+            document.getElementById('deleteItinBtn').onclick = () => openDeleteModal(data.id);
+            updateSaveButton();
+
+            const list = document.getElementById('placesList');
+            list.innerHTML = '';
+            const locations = [];
+
+            (data.places || []).forEach(place => {
+                if (place.location) locations.push({ name: place.name, loc: place.location });
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                item.id = `place-${place.id}`;
+                item.innerHTML = `
+                    <h4>${place.name}</h4>
+                    ${place.time ? `<p class="place-meta">🕗 ${place.time}</p>` : ''}
+                    ${place.location ? `<p class="place-meta">📍 ${place.location}</p>` : ''}
+                    ${place.description ? `<p class="place-desc">${place.description}</p>` : ''}
+                    <button onclick="deleteActivity(${data.id}, ${place.id}, this)" class="btn btn-danger btn-sm" style="margin-top:0.5rem;">Remove</button>
+                `;
+                list.appendChild(item);
+            });
+
+            if (locations.length > 0) geocodeAndMap(locations);
+        }
+
+        // ── Add Activity ─────────────────────────────────────────────────────────
+        async function addActivity() {
+            if (!currentItineraryId) { showAlert('alertbox', 'Generate or select an itinerary first.'); return; }
+            const name = document.getElementById('newPlaceName').value.trim();
+            if (!name) { showAlert('alertbox', 'Place name is required.'); return; }
+
+            const res = await api.post(`/itineraries/${currentItineraryId}/places`, {
+                name,
+                location: document.getElementById('newPlaceLocation').value,
+                time: document.getElementById('newPlaceTime').value,
+                description: document.getElementById('newPlaceDesc').value
+            });
+
+            if (res.error) { showAlert('alertbox', res.error, 'error'); return; }
+
+            // Append to timeline
+            const list = document.getElementById('placesList');
+            const item = document.createElement('div');
+            item.className = 'timeline-item';
+            item.id = `place-${res.data.id}`;
+            item.innerHTML = `
+                <h4>${res.data.name}</h4>
+                ${res.data.time ? `<p class="place-meta">🕗 ${res.data.time}</p>` : ''}
+                ${res.data.location ? `<p class="place-meta">📍 ${res.data.location}</p>` : ''}
+                ${res.data.description ? `<p class="place-desc">${res.data.description}</p>` : ''}
+                <button onclick="deleteActivity(${currentItineraryId}, ${res.data.id}, this)" class="btn btn-danger btn-sm" style="margin-top:0.5rem;">Remove</button>
+            `;
+            list.appendChild(item);
+            ['newPlaceName','newPlaceLocation','newPlaceTime','newPlaceDesc'].forEach(id => document.getElementById(id).value = '');
+            showAlert('alertbox', '✅ Activity added!', 'success');
+        }
+
+        // ── Delete Activity ──────────────────────────────────────────────────────
+        async function deleteActivity(itinId, placeId, btn) {
+            btn.disabled = true;
+            const res = await api.delete(`/itineraries/${itinId}/places/${placeId}`);
+            if (res.error) { showAlert('alertbox', res.error, 'error'); btn.disabled = false; return; }
+            document.getElementById(`place-${placeId}`)?.remove();
+            showAlert('alertbox', 'Activity removed.', 'success');
+        }
+
+        // ── Delete Itinerary (with modal) ────────────────────────────────────────
+        let pendingDeleteId = null;
+        function openDeleteModal(id) { pendingDeleteId = id; document.getElementById('deleteModal').classList.add('open'); }
+        function closeModal() { document.getElementById('deleteModal').classList.remove('open'); pendingDeleteId = null; }
+        async function confirmDelete() {
+            if (!pendingDeleteId) return;
+            setLoading('confirmDeleteBtn', true);
+            const res = await api.delete(`/itineraries/${pendingDeleteId}`);
+            setLoading('confirmDeleteBtn', false, 'Yes, Delete');
+            closeModal();
+            if (res.error) { showAlert('alertbox', res.error, 'error'); return; }
+            document.getElementById('itineraryView').style.display = 'none';
+            document.getElementById('welcomeState').style.display = 'block';
+            currentItineraryId = null;
+            loadMyTrips();
+            showAlert('alertbox', '🗑️ Itinerary deleted.', 'success');
+        }
+
+        // ── Share Link ───────────────────────────────────────────────────────────
+        async function getShareLink() {
+            if (!currentItineraryId) return;
+            const res = await api.get(`/itineraries/${currentItineraryId}/share-link`);
+            if (res.error) { showAlert('alertbox', res.error, 'error'); return; }
+            const box = document.getElementById('shareLinkBox');
+            const frontendUrl = `${window.location.origin}/fyptravelbuddy/frontend/shared.html?token=${res.data.share_token}`;
+            document.getElementById('shareLinkInput').value = frontendUrl;
+            box.style.display = 'block';
+        }
+
+        function copyShareLink() {
+            const input = document.getElementById('shareLinkInput');
+            navigator.clipboard.writeText(input.value);
+            showAlert('alertbox', '📋 Link copied to clipboard!', 'success');
+        }
+
+        // ── My Trips ─────────────────────────────────────────────────────────────
+        async function loadMyTrips() {
+            const res = await api.get('/itineraries');
+            const container = document.getElementById('tripsList');
+            const view = document.getElementById('myTripsView');
+            view.style.display = 'block';
+
+            if (!res.data || res.data.length === 0) {
+                container.innerHTML = '<div class="empty-state"><span>📭</span><p>No itineraries yet. Generate your first trip!</p></div>';
+                return;
+            }
+
+            container.innerHTML = res.data.map(it => `
+                <div class="itinerary-card">
+                    <span class="badge badge-${it.permissions}">${it.permissions}</span>
+                    <h4 style="margin-top:0.5rem;">${it.title}</h4>
+                    <p class="meta">📅 ${fmtDate(it.start_date)} — ${fmtDate(it.end_date)} &nbsp;|&nbsp; ${it.places?.length ?? 0} stops</p>
+                    <div class="itinerary-actions">
+                        <button onclick="viewTrip(${it.id})" class="btn btn-secondary btn-sm">View</button>
+                        <button onclick="openDeleteModal(${it.id})" class="btn btn-danger btn-sm">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function viewTrip(id, isSaved = false) {
+            const res = await api.get(`/itineraries/${id}`);
+            if (res.error) { showAlert('alertbox', res.error, 'error'); return; }
+            renderItinerary(res.data, isSaved);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ── Save / Unsave ────────────────────────────────────────────────────────
+        function updateSaveButton() {
+            const btn = document.getElementById('saveBtn');
+            if (currentIsSaved) {
+                btn.textContent = '✅ Saved';
+                btn.classList.add('btn-success');
+                btn.classList.remove('btn-secondary');
+            } else {
+                btn.textContent = '💾 Save Trip';
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-secondary');
+            }
+        }
+
+        async function toggleSave() {
+            if (!currentItineraryId) return;
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+
+            if (currentIsSaved) {
+                // Unsave
+                const res = await api.delete(`/itineraries/${currentItineraryId}/save`);
+                if (res.error) { showAlert('alertbox', res.error, 'error'); btn.disabled = false; return; }
+                currentIsSaved = false;
+                showAlert('alertbox', 'Removed from saved trips.', 'success');
+            } else {
+                // Save
+                const res = await api.post(`/itineraries/${currentItineraryId}/save`, {});
+                if (res.error && res.status !== 409) {
+                    showAlert('alertbox', res.error, 'error'); btn.disabled = false; return;
+                }
+                currentIsSaved = true;
+                showAlert('alertbox', '💾 Trip saved! View it in your Profile → Saved Trips.', 'success');
+            }
+
+            btn.disabled = false;
+            updateSaveButton();
+        }
+
+        // ── Leaflet Map (Free, no API key) ───────────────────────────────────────
+        function initMap() {
+            if (leafletMap) return; // already initialised
+            leafletMap = L.map('map').setView([4.2105, 108.9758], 6); // Malaysia center
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 18
+            }).addTo(leafletMap);
+        }
+
+        async function geocodeAndMap(locations) {
+            if (!leafletMap) initMap();
+
+            // Clear old markers
+            markers.forEach(m => leafletMap.removeLayer(m));
+            markers = [];
+
+            const bounds = [];
+            const purpleIcon = L.divIcon({
+                className: '',
+                html: `<div style="background:#8b5cf6;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);">N</div>`,
+                iconSize: [28, 28], iconAnchor: [14, 14]
+            });
+
+            for (let i = 0; i < locations.length; i++) {
+                const loc = locations[i];
+                try {
+                    // Use Nominatim (OpenStreetMap's free geocoder)
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(loc.loc + ', Malaysia')}&format=json&limit=1`);
+                    const data = await res.json();
+                    if (data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lng = parseFloat(data[0].lon);
+                        const icon = L.divIcon({
+                            className: '',
+                            html: `<div style="background:#8b5cf6;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${i+1}</div>`,
+                            iconSize: [28, 28], iconAnchor: [14, 14]
+                        });
+                        const marker = L.marker([lat, lng], { icon })
+                            .addTo(leafletMap)
+                            .bindPopup(`<b>${loc.name}</b><br><small>${loc.loc}</small>`);
+                        markers.push(marker);
+                        bounds.push([lat, lng]);
+                    }
+                } catch(e) { console.warn('Geocode failed for', loc.loc); }
+            }
+
+            if (bounds.length > 0) leafletMap.fitBounds(bounds, { padding: [40, 40] });
+        }
+
+        function logout() { api.clearAuth(); window.location.href = 'index.html'; }
+
+        window.onload = initDashboard;
+    </script>
+</body>
+</html>
