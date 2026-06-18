@@ -94,7 +94,7 @@
         async function handleLogin(e) {
             e.preventDefault();
             setLoading('loginBtn', true);
-            const res = await api.post('login', {
+            const res = await api.post('auth/login', {
                 email: document.getElementById('loginEmail').value,
                 password: document.getElementById('loginPassword').value
             }, false);
@@ -111,7 +111,7 @@
             const cf = document.getElementById('regConfirm').value;
             if (pw !== cf) { showAlert('alertbox', 'Passwords do not match.'); return; }
             setLoading('regBtn', true);
-            const res = await api.post('register', {
+            const res = await api.post('auth/register', {
                 name: document.getElementById('regName').value,
                 email: document.getElementById('regEmail').value,
                 password: pw,
