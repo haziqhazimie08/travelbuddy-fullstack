@@ -1,16 +1,5 @@
 <?php
 
-// Force global headers for all requests
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
-header("Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorization, X-Requested-With");
-
-// Instantly intercept and kill preflight OPTIONS requests with a 200 OK
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    header("HTTP/1.1 200 OK");
-    exit(0);
-}
-
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
