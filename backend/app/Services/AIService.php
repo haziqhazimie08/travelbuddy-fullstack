@@ -12,7 +12,7 @@ class AIService
 
     public function __construct()
     {
-        $this->apiKey = env('GEMINI_API_KEY');
+        $this->apiKey = config('services.gemini.api_key');
     }
 
     public function generateItinerary(Preference $preference, int $numDays = 3, string $startDate = '', string $endDate = '')

@@ -17,11 +17,12 @@ return [
 
     'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'register', 'auth/*'],
 
+    'allowed_methods' => ['*'],
+
     'allowed_origins' => [
         'https://travelbuddy-fullstack.vercel.app',
         '*'
     ],
-
 
     'allowed_origins_patterns' => [],
 
@@ -34,3 +35,4 @@ return [
     'supports_credentials' => false,
 
 ];
+

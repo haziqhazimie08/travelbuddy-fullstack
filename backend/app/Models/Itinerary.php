@@ -9,7 +9,7 @@ class Itinerary extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'start_date', 'end_date', 'permissions'];
+    protected $fillable = ['user_id', 'title', 'start_date', 'end_date', 'permissions', 'share_token'];
 
     public function user()
     {

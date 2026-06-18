@@ -396,7 +396,7 @@
             const res = await api.get(`/itineraries/${currentItineraryId}/share-link`);
             if (res.error) { showAlert('alertbox', res.error, 'error'); return; }
             const box = document.getElementById('shareLinkBox');
-            const frontendUrl = `${window.location.origin}/fyptravelbuddy/frontend/shared.html?token=${res.data.share_token}`;
+            const frontendUrl = `${window.location.origin}/shared.html?token=${res.data.share_token}`;
             document.getElementById('shareLinkInput').value = frontendUrl;
             box.style.display = 'block';
         }
